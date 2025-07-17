@@ -1,4 +1,4 @@
-#include "include.hpp"
+#include "func.hpp"
 
 double scalar_product(const std::vector<double>& a, 
                     const std::vector<double>& b)
@@ -55,4 +55,74 @@ void CSR_mat_vec_prod_parallel(sycl::queue& q,
             res_access[i] = val;
         });
     }).wait();       
+}
+
+void scale(sycl::queue&q,
+            sycl::buffer<double>& vec_buf,
+            sycl::buffer<double>& alpha_buf,
+            sycl::buffer<double>& res_buf,
+            size_t& n)
+{
+    q.submit([&](sycl::handler& h){
+        sycl::accessor vec_access(vec_buf, h, sycl::read_write);
+        sycl::accessor alpha_access(alpha_buf, h, sycl::read_only);
+        sycl::accessor res_access(res_buf, h, sycl::write_only, sycl::no_init);
+
+        h.parallel_for(sycl::range<1>(n), [=](sycl::id<1> i){
+            res_access[i] = vec_access[i] * alpha_access[0];
+        });
+    }).wait();
+}
+
+void axpy(sycl::queue& q,
+        sycl::buffer<double>& x_buf,
+        sycl::buffer<double>& y_buf,
+        sycl::buffer<double>& alpha_buf,
+        sycl::buffer<double>& res_buf,
+        size_t& n)
+{
+    q.submit([&](sycl::handler& h){
+        sycl::accessor x_access(x_buf, h, sycl::read_only);
+        sycl::accessor y_access(y_buf, h, sycl::read_write);
+        sycl::accessor res_access(res_buf, h, sycl::write_only, sycl::no_init);
+        sycl::accessor alpha_access(alpha_buf, h, sycl::read_only);
+
+        h.parallel_for(sycl::range<1>(n), [=](sycl::id<1> i){
+            res_access[i] = alpha_access[0] * x_access[i] + y_access[i];
+        });
+    }).wait();
+}
+
+void subtract(sycl::queue& q,
+            sycl::buffer<double>& x_buf,
+            sycl::buffer<double>& y_buf,
+            sycl::buffer<double>& res_buf,
+            size_t& n)
+{
+    q.submit([&](sycl::handler& h){
+        sycl::accessor x_access(x_buf, h, sycl::read_only);
+        sycl::accessor y_access(y_buf, h, sycl::read_only);
+        sycl::accessor res_access(res_buf, h, sycl::write_only, sycl::no_init);
+
+        h.parallel_for(sycl::range<1>(n), [=](sycl::id<1> i){
+            res_access[i] = x_access[i] - y_access[i];
+        });
+    }).wait();
+}
+
+void scale_division(sycl::queue& q,
+                    sycl::buffer<double>& x_buf,
+                    sycl::buffer<double>& alpha_buf,
+                    sycl::buffer<double>& res_buf,
+                    size_t& n)
+{
+    q.submit([&](sycl::handler& h){
+        sycl::accessor x_access(x_buf, h, sycl::read_only);
+        sycl::accessor alpha_access(alpha_buf, h, sycl::read_only);
+        sycl::accessor res_access(res_buf, h, sycl::write_only, sycl::no_init);
+
+        h.parallel_for(sycl::range<1>(n), [=](sycl::id<1> i){
+            res_access[i] = x_access[i] / alpha_access[0];
+        });
+    }).wait();
 }

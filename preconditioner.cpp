@@ -1,4 +1,4 @@
-#include "include.hpp"
+#include "func.hpp"
 
 void compute_jacobi_preconditioner_buf(sycl::buffer<size_t>& row_ptr_buf, 
                                         sycl::buffer<size_t>& col_ind_buf, 

@@ -16,12 +16,16 @@ $(EXE): $(SRC)
 	$(CXX) $(CXXFLAGS) $(SRC) -o $(EXE)
 
 # Запуск
-run: $(EXE)
+run:
+	@$(MAKE) --quiet all
 	./$(EXE)
 
 # Очистка
 clean:
 	rm -f $(EXE)
 
-# Полный цикл: сборка + запуск
-full: all run
+# Полный цикл: форсированная сборка + запуск
+full:
+	@$(MAKE) clean
+	@$(MAKE) all
+	@$(MAKE) run
